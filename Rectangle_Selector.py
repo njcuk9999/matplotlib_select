@@ -316,12 +316,28 @@ if __name__ == '__main__':
     import numpy as np
     plt.close()
     fig, frame = plt.subplots(ncols=1, nrows=1)
-    plt.scatter(np.random.rand(100), np.random.rand(100),
-                color='k', marker='o', s=20)
+    x = np.random.rand(100)
+    y = np.random.rand(100)
+    plt.scatter(x, y, color='k', marker='o', s=20)
     a = Select_Rectange(frame)
     plt.show()
     plt.close()
-# ----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
+    
+    plt.scatter(x, y, color='k', marker='o', s=20, 'All data')
+    for r, rec in enumerate(a.data):
+        # Print the data
+        print ('Selected region {0} was:'.format(r)
+        print(Coords x=({0:.2f}, {1:.2f})  y=({2:.2f}, {3:.2f})'.format(*rec))
+        
+        # select the data and plot it in red
+        mask = (x > rec[0]) & (x < rec[1]) & (y > rec[2]) & (y < rec[3])
+        plt.scatter(x[mask], y[mask], color='r', marker='o', s=20, label='Selected')
+
+    plt.legend(loc=0)
+    plt.show()
+    plt.close()
+    # ----------------------------------------------------------------------
 
 # =============================================================================
 # End of code
