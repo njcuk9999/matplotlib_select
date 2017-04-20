@@ -324,11 +324,11 @@ if __name__ == '__main__':
     plt.close()
     # ----------------------------------------------------------------------
     
-    plt.scatter(x, y, color='k', marker='o', s=20, 'All data')
+    plt.scatter(x, y, color='k', marker='o', s=20, label='All data')
     for r, rec in enumerate(a.data):
         # Print the data
-        print ('Selected region {0} was:'.format(r)
-        print(Coords x=({0:.2f}, {1:.2f})  y=({2:.2f}, {3:.2f})'.format(*rec))
+        print ('Selected region {0} was:'.format(r))
+        print('Coords x=({0:.2f}, {1:.2f})  y=({2:.2f}, {3:.2f})'.format(*rec))
         
         # select the data and plot it in red
         mask = (x > rec[0]) & (x < rec[1]) & (y > rec[2]) & (y < rec[3])
