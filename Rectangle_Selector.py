@@ -13,6 +13,8 @@ Version 0.0.1
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.widgets import Button
+import tkinter
+import tkinter.simpledialog as tksimpledialog
 
 # =============================================================================
 # Define variables
@@ -46,6 +48,16 @@ class Select_Rectange(object):
             - current_rect_zorder  int, zorder of the saved rectangle
                                    default: 4
 
+            - tag                  bool, if true requires the user to input
+                                   some text for each box drawn
+
+            - title                string, the title for the selection
+            
+            - select_button_text   string, the select button text
+            
+            - clear_button_text    string, the clear button text
+        
+            - finish_button_text   string, the finish button text
 
         """
         # Deal with having no matplotlib axis
@@ -56,14 +68,42 @@ class Select_Rectange(object):
         # load keyword arguments
         if kwargs is None:
             kwargs = dict()
-        self.crectprops = dict()
-        self.crectprops['color'] = kwargs.get('current_rect_color', 'r')
-        self.crectprops['alpha'] = kwargs.get('currentrect_alpha', 0.125)
-        self.crectprops['zorder'] = kwargs.get('currentrect_zorder', 5)
+
+        # set the colour/transparency of the current rectangle
+        self.cprops = dict()
+        self.cprops['edgecolor'] = kwargs.get('current_rec_edgecolor', None)
+        self.cprops['facecolor'] = kwargs.get('current_rec_facecolor', None)
+        cond1 = self.cprops['edgecolor'] is None
+        cond2 = self.cprops['facecolor'] is None
+        if cond1 and cond2:
+            self.cprops['color'] = kwargs.get('current_rect_color', 'r')
+        self.cprops['alpha'] = kwargs.get('current_rect_alpha', 0.125)
+        self.cprops['zorder'] = kwargs.get('current_rect_zorder', 5)
+        # set the colour/transparency of the selected rectangles
         self.srectprops = dict()
-        self.srectprops['color'] = kwargs.get('saved_rect_color', 'b')
+        self.srectprops['edgecolor'] = kwargs.get('saved_rect_edgecolor', None)
+        self.srectprops['facecolor'] = kwargs.get('saved_rect_facecolor', None)
+        cond1 = self.srectprops['edgecolor'] is None
+        cond2 = self.srectprops['facecolor'] is None
+        if cond1 and cond2:
+            self.srectprops['color'] = kwargs.get('saved_rect_color', 'b')
         self.srectprops['alpha'] = kwargs.get('saved_rect_alpha', 0.125)
         self.srectprops['zorder'] = kwargs.get('saved_rect_zorder', 4)
+
+        # set the button and title text
+        self.title = kwargs.get('title', 'Click and draw to select rectangle '
+                                         'region')
+        self.sbuttontext = kwargs.get('select_button_text',
+                                      'Select Region')
+        self.cbuttontext = kwargs.get('clear_button_text',
+                                      'Clear all regions')
+        self.fbuttontext = kwargs.get('finish_button_text',
+                                      'Finish')
+
+        self.tag = kwargs.get('tag')
+        self.tag_title = kwargs.get('tag_title', 'Name rectangle')
+        self.tag_comment = kwargs.get('tag_comment',
+                                      'Enter description for rectangle.')
 
         # define default attributes
         self.x0 = None
@@ -76,9 +116,10 @@ class Select_Rectange(object):
         self.regions = []
         self.save_rectangles = []
         self.data = []
+        self.tags = []
 
         # Set title
-        self.ax.set_title('Click and draw to select rectangle region')
+        self.ax.set_title(self.title)
 
         # create buttons
         self.create_buttons()
@@ -201,11 +242,11 @@ class Select_Rectange(object):
         self.axselect = plt.axes(self.regions[0])
         self.axclear = plt.axes(self.regions[1])
         self.axfinish = plt.axes(self.regions[2])
-        self.bselect = Button(self.axselect, 'Select Region')
+        self.bselect = Button(self.axselect, self.sbuttontext)
         self.bselect.on_clicked(self.select)
-        self.bclear = Button(self.axclear, 'Clear all regions')
+        self.bclear = Button(self.axclear, self.cbuttontext)
         self.bclear.on_clicked(self.clear)
-        self.bfinish = Button(self.axfinish, 'Finish')
+        self.bfinish = Button(self.axfinish, self.fbuttontext)
         self.bfinish.on_clicked(self.end)
 
     def select(self, event):
@@ -236,6 +277,7 @@ class Select_Rectange(object):
         """
         # Clear data
         self.data = []
+        self.tags = []
         # if self.x0 is None then we don't need to clear (already clear)
         if self.x0 is None:
             return
@@ -274,7 +316,7 @@ class Select_Rectange(object):
         width, height = self.x1 - self.x0, self.y1 - self.y0
 
         if self.rect is None:
-            self.rect = Rectangle(start, width, height, **self.crectprops)
+            self.rect = Rectangle(start, width, height, **self.cprops)
             self.ax.add_patch(self.rect)
         else:
             self.rect.set_width(width)
@@ -306,6 +348,15 @@ class Select_Rectange(object):
         :return:
         """
         self.data.append([self.x0, self.x1, self.y0, self.y1])
+        # start the tag
+        if self.tag:
+            self.tag_rectangle()
+
+    def tag_rectangle(self):
+        root = tkinter.Tk()
+        root.withdraw()
+        w = tksimpledialog.askstring(self.tag_title, self.tag_comment)
+        self.tags.append(w)
 
 
 # =============================================================================
