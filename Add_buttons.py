@@ -12,6 +12,15 @@ Version 0.0.1
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
+import sys
+# detect python version
+# if python 3 do this:
+if (sys.version_info > (3, 0)):
+    import tkinter
+    import tkinter.simpledialog as tksimpledialog
+else:
+    import Tkinter as tkinter
+    import tkSimpleDialog as tksimpledialog
 
 # =============================================================================
 # Define Class. Methods and Functions
@@ -49,6 +58,8 @@ class Add_Buttons(object):
                                
                                "OPTION" - sends the button_label string
                                           self.result set to button_label
+                                          
+                               "UINPUT" - asks user for an input
 
             button_params    - list of dictionaries (optional)
                                if defined must be same length as button_labels
@@ -65,13 +76,16 @@ class Add_Buttons(object):
         self.actions = dict(NEXT=self.next,
                             PREVIOUS=self.previous,
                             CLOSE=self.end,
-                            OPTION=self.option)
+                            OPTION=self.option,
+                            UINPUT=self.uinput)
         self.supported_actions = list(self.actions.keys())
         # current button params
         self.buttons = []
         self.regions = []
         # result (1, 0, -1, or string)
         self.result = 0
+        # storage
+        self.data = dict()
         # Deal with having no matplotlib axis
         if ax is None:
             self.ax = plt.gca()
@@ -199,8 +213,38 @@ class Add_Buttons(object):
             self.result = self.button_labels[pos]
 
             close = self.button_params[pos].get('close', False)
+            func = self.button_params[pos].get('func', None)
+            if func is not None:
+                func()
             if close:
                 plt.close()
+
+    def uinput(self, event):
+        pos = self.button_region(event)
+        if pos is not None:
+            props = self.button_params[pos]
+            title = props.get('title', 'Enter a Value')
+            startvalue = props.get('comment', 'Message')
+            name = props.get('name', 'x')
+            fmt = props.get('fmt', None)
+            minval = props.get('minval', None)
+            maxval = props.get('maxval', None)
+
+            root = tkinter.Tk()
+            root.withdraw()
+            if fmt == int:
+                value = tksimpledialog.askinteger(title, startvalue,
+                                                  minvalue=minval,
+                                                  maxvalue=maxval)
+            elif fmt == float:
+                value = tksimpledialog.askfloat(title, startvalue,
+                                                minvalue=minval,
+                                                maxvalue=maxval)
+            else:
+                value = tksimpledialog.askstring(title, startvalue)
+            self.data[name] = value
+            root.destroy()
+
 
     def end(self, event):
         """
@@ -238,19 +282,33 @@ class Add_Buttons(object):
 # Main code to test the rectangle selector
 if __name__ == '__main__':
     import numpy as np
+    # plt.close()
+    # fig, frame = plt.subplots(ncols=1, nrows=1)
+    # x = np.random.rand(100)
+    # y = np.random.rand(100)
+    # plt.scatter(x, y, color='k', marker='o', s=20)
+    # odict = dict(close=True)
+    # a = Add_Buttons(ax=frame,
+    #                 button_labels=['A', 'B'],
+    #                 button_actions=['OPTION', 'OPTION'],
+    #                 button_params=[odict, odict])
+    # plt.show()
+    # plt.close()
+
     plt.close()
     fig, frame = plt.subplots(ncols=1, nrows=1)
     x = np.random.rand(100)
     y = np.random.rand(100)
     plt.scatter(x, y, color='k', marker='o', s=20)
     odict = dict(close=True)
+    udict = dict(name='x', fmt=int, title='Enter value',
+                 comment='Please enter x in meters.', minval=4, maxval=10)
     a = Add_Buttons(ax=frame,
-                    button_labels=['A', 'B'],
-                    button_actions=['OPTION', 'OPTION'],
-                    button_params=[odict, odict])
+                    button_labels=['Enter value', 'Close'],
+                    button_actions=['UINPUT', 'OPTION'],
+                    button_params=[udict, odict])
     plt.show()
     plt.close()
-
 
 # =============================================================================
 # End of code
